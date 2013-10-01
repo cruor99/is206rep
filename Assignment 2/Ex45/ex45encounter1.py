@@ -5,6 +5,7 @@ import ex45scene
 import ex45badend
 import ex45main
 import ex45charhand
+import os
 class MainEncounter(ex45scene.Scene):
 
     def enter(self):
@@ -21,8 +22,8 @@ class MainEncounter(ex45scene.Scene):
 		
 		
 		if action == "who am I":
-			print "You are %s" % ex45charhand.CharacterHandler.charName
-			return 'death'
+			print "You are %s" % ex45charhand.charName
+			return 'first_encounter'
 			
 		if action == "others":
 			print "Yes, others have come through here. Their names were"
@@ -32,7 +33,8 @@ class MainEncounter(ex45scene.Scene):
 			return 'death'
 		if action == "ignore":
 			print"you ignore the rambling old man, and walk straight ahead."
-			open ("Players/" + ex45main.GameMain.currChar + ".txt", 'a+b').write("Action: Ignored")
+			os.chdir(ex45main.workPath +"/ex45" + "/Players")
+			open (ex45main.currChar + ".txt", 'a+b').write(  "Action: Ignored")
 			return 'death'
 
 		else:

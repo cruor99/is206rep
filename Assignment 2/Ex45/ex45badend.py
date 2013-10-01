@@ -8,7 +8,7 @@ from random import randint
 class BadEnd(ex45scene.Scene):
 
     quips = [
-        "YOU REACHED A BAD END, JUST LIKE THE REST",
+        "IT WAS ALL A TRAP, THERE IS NO ESCAPE!",
         
     ]
 
