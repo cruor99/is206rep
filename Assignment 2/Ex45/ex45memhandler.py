@@ -10,8 +10,8 @@ class MemoryHandler(object):
 
 	
 	def listCharacters(self):
-		workPath = os.getcwd()
-		os.chdir(workPath + "/Players")
+		#workPath = os.getcwd()
+		#os.chdir(workPath + "/Players")
 		#print os.getcwd()
 		fileList = []
 		for files in glob.glob("*.txt"):
