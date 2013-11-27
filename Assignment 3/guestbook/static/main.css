@@ -101,5 +101,9 @@ input[type=submit] {
 
 .post-content {
     margin-top: 5px;
+    width: 90%;
+    overflow: scroll;
 }
-
+.content{
+width: 650px;
+}

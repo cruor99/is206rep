@@ -57,7 +57,7 @@ class BlogHandler(webapp2.RequestHandler):
         self.set_secure_cookie('user_id', str(user.key().id()))
 
     def logout(self):
-        self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/blog/')
+        self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/blog')
 
     def initialize(self, *a, **kw):
         webapp2.RequestHandler.initialize(self, *a, **kw)
@@ -295,16 +295,16 @@ class Login(BlogHandler):
 class Logout(BlogHandler):
     def get(self):
         self.logout()
-        self.redirect('/blog/signup')
+        self.redirect('/blog')
 
-class Unit3Welcome(BlogHandler):
+class Welcome(BlogHandler):
     def get(self):
         if self.user:
             self.render('welcome.html', username = self.user.name)
         else:
             self.redirect('/signup')
 
-class Welcome(BlogHandler):
+class Unit2Welcome(BlogHandler):
     def get(self):
         username = self.request.get('username')
         if valid_username(username):
@@ -342,14 +342,14 @@ class BlogFrontJson(BlogHandler):
 app = webapp2.WSGIApplication([('/', MainPage),
                                ('/unit2/rot13', Rot13),
                                ('/unit2/signup', Unit2Signup),
-                               ('/unit2/welcome', Welcome),
+                               ('/unit2/welcome', Unit2Welcome),
                                ('/blog/?', BlogFront),
                                ('/blog/([0-9]+)', PostPage),
                                ('/blog/newpost', NewPost),
                                ('/blog/signup', Register),
                                ('/blog/login', Login),
                                ('/blog/logout', Logout),
-                               ('/blog/welcome', Unit3Welcome),
+                               ('/blog/welcome', Welcome),
                                ('/blog.json', BlogFrontJson),
                                ('/blog/.json', BlogFrontJson),
                                ('/blog/([0-9]+).json', PostPageJson),
