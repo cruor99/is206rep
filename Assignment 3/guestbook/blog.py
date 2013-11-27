@@ -49,15 +49,16 @@ class BlogHandler(webapp2.RequestHandler):
             'Set-Cookie',
             '%s=%s; Path=/' % (name, cookie_val))
 
-    def read_secure_cookie(self, name):
+    def read_secure_cookie(self,name):
         cookie_val = self.request.cookies.get(name)
-        return cookie_val and check_secure_val(cookie_val)
+        if cookie_val:
+            return check_secure_val(cookie_val)
 
     def login(self, user):
         self.set_secure_cookie('user_id', str(user.key().id()))
 
     def logout(self):
-        self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/blog')
+        self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
 
     def initialize(self, *a, **kw):
         webapp2.RequestHandler.initialize(self, *a, **kw)
@@ -295,7 +296,7 @@ class Login(BlogHandler):
 class Logout(BlogHandler):
     def get(self):
         self.logout()
-        self.redirect('/blog')
+        self.redirect('/blog/signup')
 
 class Welcome(BlogHandler):
     def get(self):
@@ -348,7 +349,7 @@ app = webapp2.WSGIApplication([('/', MainPage),
                                ('/blog/newpost', NewPost),
                                ('/blog/signup', Register),
                                ('/blog/login', Login),
-                               ('/blog/logout', Logout),
+                               ('/logout', Logout),
                                ('/blog/welcome', Welcome),
                                ('/blog.json', BlogFrontJson),
                                ('/blog/.json', BlogFrontJson),
