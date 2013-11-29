@@ -11,11 +11,12 @@ import json
 import datetime
 
 from google.appengine.ext import db
-
+#Declare template directory
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True)
-allowed = frozenset(string.ascii_letters + string.digits + '_' + '-')
+ #Sets the allowed characters, used in rot13 class
+allowed = frozenset(string.ascii_letters + string.digits)
 secret = 'fart'
 def stringCheck(my_string):
         return all (c in allowed for c in my_string)
@@ -31,7 +32,8 @@ def check_secure_val(secure_val):
     val = secure_val.split('|')[0]
     if secure_val == make_secure_val(val):
         return val
-
+#Parent class for all blog related classes. 
+#Sets up all utility methods for the blog classes.
 class BlogHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
@@ -68,29 +70,30 @@ class BlogHandler(webapp2.RequestHandler):
 def render_post(response, post):
     response.out.write('<b>' + post.subject + '</b><br>')
     response.out.write(post.content)
-
+#Simple collection page, gathering all course-related material
 class MainPage(BlogHandler):
   def get(self):
       self.render('samleside.html')
 
 
 ##### user stuff
+#Autogenerates salt. Not best form to have it in same file as it's being used.
 def make_salt(length = 5):
     return ''.join(random.choice(letters) for x in xrange(length))
-
+#Hashes password based on salt, generates salt if none.
 def make_pw_hash(name, pw, salt = None):
     if not salt:
         salt = make_salt()
     h = hashlib.sha256(name + pw + salt).hexdigest()
     return '%s,%s' % (salt, h)
-
+#checks for valid PW
 def valid_pw(name, password, h):
     salt = h.split(',')[0]
     return h == make_pw_hash(name, password, salt)
 
 def users_key(group = 'default'):
     return db.Key.from_path('users', group)
-
+#user class
 class User(db.Model):
     name = db.StringProperty(required = True)
     pw_hash = db.StringProperty(required = True)
@@ -124,7 +127,7 @@ class User(db.Model):
 
 def blog_key(name = 'default'):
     return db.Key.from_path('blogs', name)
-
+#post database class
 class Post(db.Model):
     subject = db.StringProperty(required = True)
     content = db.TextProperty(required = True)
@@ -134,15 +137,14 @@ class Post(db.Model):
     def render(self):
         self._render_text = self.content.replace('\n', '<br>')
         return render_str("post.html", p = self)
-    def toJson(self):
+   #json handling for psots
+   def toJson(self):
                
         POST_TYPES = (str, str, datetime.date,datetime.date)
         output = {}
         for key in self.properties():
             value = getattr(self, key)
-            # output[key] = value
-            # if value is None or isinstance(value, POST_TYPES):
-            # output[key] = value
+            #date time handler, formats to ISO 8601: YYYY-MM-DD
             if isinstance(value, datetime.date):
                 dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime.datetime) else None
                 output[key] = json.dumps(value, default=dthandler)
@@ -155,12 +157,12 @@ class Post(db.Model):
             else:
                 raise ValueError('cannot encode ' + repr(value))
         return output
-        
+ #blogfront. Renders all posts by order of created, with the most recent first       
 class BlogFront(BlogHandler):
     def get(self):
         posts = greetings = Post.all().order('-created')
         self.render('front.html', posts = posts)
-
+#post page, handles the permalinked posts.
 class PostPage(BlogHandler):
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
@@ -171,15 +173,17 @@ class PostPage(BlogHandler):
             return
 
         self.render("permalink.html", post = post)
-
+#creation of a new post class
 class NewPost(BlogHandler):
     def get(self):
+#Checks to make sure you are logged in before posting
         if self.user:
             self.render("newpost.html")
         else:
             self.redirect("/blog/login")
-
+#
     def post(self):
+#Another check to make sure you are still logged in before posting the content
         if not self.user:
             self.redirect('/blog')
 
@@ -195,7 +199,7 @@ class NewPost(BlogHandler):
             self.render("newpost.html", subject=subject, content=content, error=error)
 
 
-###### Unit 2 begyner her
+#Rot13 class, part of unit 2. Chose to only allow English ascii lettering, returns error if otherwise.
 class Rot13(BlogHandler):
     def get(self):
         self.render('rot13-form.html')
@@ -203,10 +207,11 @@ class Rot13(BlogHandler):
     def post(self):
         rot13 = ''
         text = self.request.get('text')
+#runs strinCheck to make sure text in form is compliant with already establised allowed characters. 
         if stringCheck(text):
             rot13 = text.encode('rot13')
         else:
-            rot13 = 'You have input a not-allowed letter. Please limit yourself to the english alphabet and - _ '
+            rot13 = 'You have input a not-allowed letter. Please limit yourself to the english alphabet'
         self.render('rot13-form.html', text = rot13)
 
 
@@ -221,7 +226,7 @@ def valid_password(password):
 EMAIL_RE  = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
 def valid_email(email):
     return not email or EMAIL_RE.match(email)
-
+#Signup klassen
 class Signup(BlogHandler):
     def get(self):
         self.render("signup-form.html")
@@ -258,7 +263,7 @@ class Signup(BlogHandler):
 
     def done(self, *a, **kw):
         raise NotImplementedError
-
+#Deprecated unit 2 signup
 class Unit2Signup(Signup):
     def done(self):
         self.redirect('/unit2/welcome?username=' + self.username)
@@ -276,7 +281,7 @@ class Register(Signup):
 
             self.login(u)
             self.redirect('/blog')
-
+#Login class, would redirect to only /blog but redirects to /blog/welcome for udacity compatability
 class Login(BlogHandler):
     def get(self):
         self.render('login-form.html')
@@ -292,7 +297,7 @@ class Login(BlogHandler):
         else:
             msg = 'Invalid login'
             self.render('login-form.html', error = msg)
-
+#Logout class, would redirect to only /blog but redirects to /blog/signup for udacity compatability
 class Logout(BlogHandler):
     def get(self):
         self.logout()
@@ -304,7 +309,7 @@ class Welcome(BlogHandler):
             self.render('welcome.html', username = self.user.name)
         else:
             self.redirect('/signup')
-
+#Deprecated welcome page for unit 2
 class Unit2Welcome(BlogHandler):
     def get(self):
         username = self.request.get('username')
@@ -315,7 +320,7 @@ class Unit2Welcome(BlogHandler):
 
           
 ############ JSON stuff
-
+#Seperate json handler for individual post pages, see Post.toJson
 class PostPageJson(BlogHandler):
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id), parent=blog_key())
@@ -325,7 +330,7 @@ class PostPageJson(BlogHandler):
             return
         self.response.headers["Content-Type"] = "application/json; charset=UTF-8"
         self.write(json.dumps(post.toJson()))
-
+#Json dumper for blogfront
 class BlogFrontJson(BlogHandler):
     def get(self):
         articles = db.GqlQuery('SELECT * FROM Post '
@@ -352,7 +357,7 @@ app = webapp2.WSGIApplication([('/', MainPage),
                                ('/logout', Logout),
                                ('/blog/welcome', Welcome),
                                ('/blog.json', BlogFrontJson),
-                               ('/blog/.json', BlogFrontJson),
+                               ('/blog/.json', BlogFrontJson),#This is here for udacity compatability, their draconic checks only allow for this as the valid link.
                                ('/blog/([0-9]+).json', PostPageJson),
                                 ],
                               debug=True)
