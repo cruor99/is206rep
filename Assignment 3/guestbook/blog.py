@@ -138,7 +138,7 @@ class Post(db.Model):
         self._render_text = self.content.replace('\n', '<br>')
         return render_str("post.html", p = self)
    #json handling for psots
-   def toJson(self):
+    def toJson(self):
                
         POST_TYPES = (str, str, datetime.date,datetime.date)
         output = {}
