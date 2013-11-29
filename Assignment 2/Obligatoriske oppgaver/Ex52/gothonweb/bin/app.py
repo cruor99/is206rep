@@ -12,7 +12,7 @@ app = web.application(urls, globals())
 render = web.template.render('templates/', base="layout")
 
 
-# A little hack so sessions works with debug mode on
+# A clusterfuck hack to make sure sessions work with debug on
 if web.config.get('_session') is None:
 	store = web.session.DiskStore('sessions')
 	session = web.session.Session(app, store, initializer={'room': None})
@@ -44,7 +44,7 @@ class GameEngine(object):
 		self.commands = {'help': session.room._help, 'l33t': session.room.leet, 'restart': self.restart, 'save': self.save, 'quit': self.quit, 'credits': self.credits}
 		
 	def credits(self):
-		session.room.output = "Main Programmer: Kjetil Andre Liknes. Graphics: The Internet. Main Concept: Zed A. Shaw."
+		session.room.output = "Programmer: Kjetil Andre Liknes (aka Cruor). Graphics lifted from the internet. Concept: LPTHW."
 	
 	def restart(self):
 		session.room = maps.START
@@ -66,7 +66,7 @@ class GameEngine(object):
 	def POST(self):
 		form = web.input(action=None)
 		
-		# This gets ugly, but until I get better, its all I can do...
+		# Granted, this is very ugly code. It's the best I could hack up with this, however. 
 		if form.action and session.room:
 			if '*' in session.room.paths:
 				if form.action != session.room.num and form.action not in self.commands:
