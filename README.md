@@ -11,6 +11,9 @@ Assignment 3 can be found running at http://206assign3.appspot.com/.
 In order to run exercise 52, make sure you are in the gothonweb directory and type 
 python bin/app.py in your console. 
 
+An error might occur when accessing the webpage, which might show as 'NonType object has no attribute _help'
+To do this, just go / instead of /game. Unsure as to why this occurs.
+
 Also make sure you have set your pythonpath, otherwise you might encounter errors. This is done through
 $ export PYTHONPATH=$PYTHONPATH:.
 ========================
